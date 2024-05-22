@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,9 +23,9 @@ class GameRepositoryImplTest {
 
     @Test
     void testSaveGame() {
-        Game game = new Game.GameBuilder().setId(1).setPlayerId(1).build();
+        Game game = new Game.GameBuilder().setId(0).setPlayerId(1).build();
         gameRepository.saveGame(game, transactionManager);
-        Game savedGame = gameRepository.findGameById(1);
+        Game savedGame = gameRepository.findGameById(0).get();
         assertEquals(game, savedGame);
     }
 
@@ -33,31 +34,22 @@ class GameRepositoryImplTest {
         Game game = new Game.GameBuilder().setId(1).setPlayerId(1).build();
         gameRepository.saveGame(game, transactionManager);
         gameRepository.deleteGame(1, transactionManager);
-        assertThrows(ResourceNotFoundException.class, () -> gameRepository.findGameById(1));
-    }
-
-    @Test
-    void testDeleteGame_ResourceNotFound() {
-        assertThrows(ResourceNotFoundException.class, () -> gameRepository.deleteGame(1, transactionManager));
+        Optional<Game> deletedGame = gameRepository.findGameById(1);
+        assert (deletedGame.isEmpty());
     }
 
     @Test
     void testFindGameById() {
-        Game game = new Game.GameBuilder().setId(1).setPlayerId(1).build();
+        Game game = new Game.GameBuilder().setId(0).setPlayerId(1).build();
         gameRepository.saveGame(game, transactionManager);
-        Game foundGame = gameRepository.findGameById(1);
+        Game foundGame = gameRepository.findGameById(0).get();
         assertEquals(game, foundGame);
     }
 
     @Test
-    void testFindGameById_ResourceNotFound() {
-        assertThrows(ResourceNotFoundException.class, () -> gameRepository.findGameById(1));
-    }
-
-    @Test
     void testFindGamesByPlayerId() {
-        Game game1 = new Game.GameBuilder().setId(1).setPlayerId(1).build();
-        Game game2 = new Game.GameBuilder().setId(2).setPlayerId(1).build();
+        Game game1 = new Game.GameBuilder().setId(0).setPlayerId(1).build();
+        Game game2 = new Game.GameBuilder().setId(1).setPlayerId(1).build();
         gameRepository.saveGame(game1, transactionManager);
         gameRepository.saveGame(game2, transactionManager);
         List<Game> games = gameRepository.findGamesByPlayerId(1);

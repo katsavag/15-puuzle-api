@@ -27,11 +27,8 @@ class TransactionManagerTest {
     void testRollback_SaveCommand() {
         SaveCommand<String, Integer> saveCommand = new SaveCommand<>(storageMap, "Test", 1);
         transactionManager.executeCommand(saveCommand);
-        DeleteCommand<String, Integer> deleteCommand = new DeleteCommand<>(storageMap, 1);
-        transactionManager.executeCommand(deleteCommand);
-        assertNull(storageMap.get(1));
         transactionManager.rollback();
-        assertEquals("Test", storageMap.get(1));
+        assertNull(storageMap.get(1));
     }
 
     @Test

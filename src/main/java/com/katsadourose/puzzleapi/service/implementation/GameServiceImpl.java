@@ -5,7 +5,6 @@ import com.katsadourose.puzzleapi.exception.*;
 import com.katsadourose.puzzleapi.factory.GameFactory;
 import com.katsadourose.puzzleapi.model.Game;
 import com.katsadourose.puzzleapi.repository.GameRepository;
-import com.katsadourose.puzzleapi.repository.PlayerRepository;
 import com.katsadourose.puzzleapi.service.GameService;
 import com.katsadourose.puzzleapi.service.PlayerService;
 import com.katsadourose.puzzleapi.transaction_engine.TransactionManager;
@@ -35,6 +34,12 @@ public class GameServiceImpl implements GameService {
             throw new MaxResourceEntriesException("Player has reached the maximum number of games");
         }
     }
+
+    private void checkGameExists(int id) {
+        if (gameRepository.findGameById(id).isEmpty()) {
+            throw new ResourceNotFoundException("Game with id " + id + " not found");
+        }
+    }
     @Override
     public Game createGame(NewGameDTO newGameDTO) {
         TransactionManager transactionManager = new TransactionManager();
@@ -55,6 +60,23 @@ public class GameServiceImpl implements GameService {
             log.error(exception.getMessage());
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to create new game: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
+        }
+    }
+
+    @Override
+    public void deleteGame(int id) {
+        TransactionManager transactionManager = new TransactionManager();
+        try {
+            checkGameExists(id);
+            gameRepository.deleteGame(id, transactionManager);
+        } catch (ResourceNotFoundException exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.GAME_NOT_FOUND, String.format("Failed to delete game: %s", ErrorCode.GAME_NOT_FOUND.getMessage()));
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to delete game: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }
     }
 }

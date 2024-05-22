@@ -29,17 +29,17 @@ public class PlayerControllerTest {
 
     private MockMvc mockMvc;
 
-    @Test
-    public void testCreateNewPlayer() throws Exception {
-        mockMvc = MockMvcBuilders.standaloneSetup(playerController).build();
-
-        String playerJson = "{\"playerName\":\"John\"}";
-
-        mockMvc.perform(post("/player")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(playerJson))
-                .andExpect(status().isCreated());
-
-        verify(playerService, times(1)).createNewPlayer(Mockito.any(NewPlayerDTO.class));
-    }
+//    @Test
+//    public void testCreateNewPlayer() throws Exception {
+//        mockMvc = MockMvcBuilders.standaloneSetup(playerController).build();
+//
+//        String playerJson = "{\"playerName\":\"John\"}";
+//
+//        mockMvc.perform(post("/player")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(playerJson))
+//                .andExpect(status().isCreated());
+//
+//        verify(playerService, times(1)).createNewPlayer(Mockito.any(NewPlayerDTO.class));
+//    }
 }

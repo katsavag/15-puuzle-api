@@ -1,10 +1,8 @@
 package com.katsadourose.puzzleapi.service.implementation;
 
 import com.katsadourose.puzzleapi.dto.NewGameDTO;
-import com.katsadourose.puzzleapi.exception.ApplicationException;
-import com.katsadourose.puzzleapi.exception.ErrorCode;
-import com.katsadourose.puzzleapi.exception.GameServiceException;
-import com.katsadourose.puzzleapi.exception.PlayerServiceException;
+import com.katsadourose.puzzleapi.exception.*;
+import com.katsadourose.puzzleapi.factory.GameFactory;
 import com.katsadourose.puzzleapi.model.Game;
 import com.katsadourose.puzzleapi.model.PuzzleType;
 import com.katsadourose.puzzleapi.repository.implementation.GameRepositoryImpl;
@@ -19,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -79,5 +78,31 @@ public class GameServiceImplTest {
         GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.createGame(newGameDTO));
         assertEquals(String.format("Failed to create new game: %s", ErrorCode.PLAYER_NOT_FOUND.getMessage()), exception.getMessage());
         assertEquals("PLAYER_NOT_FOUND", exception.getErrorCode().name());
+    }
+
+    @Test
+    public void testDeleteGame_Success() {
+        when(gameRepository.findGameById(anyInt())).thenReturn(Optional.of(GameFactory.createGame(1, PuzzleType.EASY)));
+
+        gameService.deleteGame(1);
+
+        verify(gameRepository, times(1)).deleteGame(anyInt(), any(TransactionManager.class));
+    }
+
+    @Test
+    public void testDeleteGame_GameNotFound() {
+        when(gameRepository.findGameById(anyInt())).thenReturn(Optional.empty());
+
+        GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.deleteGame(1));
+        assertEquals(ErrorCode.GAME_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    public void testDeleteGame_ExceptionThrown() {
+        when(gameRepository.findGameById(anyInt())).thenReturn(Optional.of(GameFactory.createGame(1, PuzzleType.EASY)));
+        doThrow(RuntimeException.class).when(gameRepository).deleteGame(anyInt(), any(TransactionManager.class));
+
+        GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.deleteGame(1));
+        assertEquals(ErrorCode.INTERNAL_SERVER, exception.getErrorCode());
     }
 }

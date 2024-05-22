@@ -7,4 +7,6 @@ import com.katsadourose.puzzleapi.model.Game;
 public interface GameService {
 
     Game createGame(NewGameDTO newGameDTO) throws GameServiceException;
+
+    void deleteGame(int id);
 }

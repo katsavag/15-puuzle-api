@@ -25,10 +25,20 @@ public class GameController {
     @ApiResponse(responseCode = "400", description = "Game Creation Failed")
     @ApiResponse(responseCode = "500", description = "Game Creation Failed due to unexpected error")
     @PostMapping(consumes = "application/json", produces = "application/json")
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Game> createNewGame(@Valid @RequestBody NewGameDTO newGameDTO) {
 
         Game createdGame = gameService.createGame(newGameDTO);
         return new ResponseEntity<>(createdGame, HttpStatus.CREATED);
+    }
+
+    @Operation(summary = "Delete existing game")
+    @ApiResponse(responseCode = "204", description = "Game deleted")
+    @ApiResponse(responseCode = "404", description = "Game Not Found")
+    @ApiResponse(responseCode = "500", description = "Game Deletion Failed due to unexpected error")
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<Void> createNewGame(@PathVariable Integer id) {
+
+        gameService.deleteGame(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

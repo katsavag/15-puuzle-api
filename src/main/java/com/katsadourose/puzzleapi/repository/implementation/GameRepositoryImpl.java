@@ -1,6 +1,5 @@
 package com.katsadourose.puzzleapi.repository.implementation;
 
-import com.katsadourose.puzzleapi.exception.ResourceNotFoundException;
 import com.katsadourose.puzzleapi.model.Game;
 import com.katsadourose.puzzleapi.repository.GameRepository;
 import com.katsadourose.puzzleapi.transaction_engine.DeleteCommand;
@@ -9,6 +8,7 @@ import com.katsadourose.puzzleapi.transaction_engine.TransactionManager;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -17,15 +17,9 @@ public final class GameRepositoryImpl implements GameRepository {
     private final ConcurrentHashMap<Integer, Game> gamesStorage = new ConcurrentHashMap<>();
     private final AtomicInteger idSequence = new AtomicInteger(0);
 
-    private void checkGameExists(int id) {
-        if (!gamesStorage.containsKey(id)) {
-            throw new ResourceNotFoundException("Game with id " + id + " not found");
-        }
-    }
-
     @Override
     public void saveGame(Game game, TransactionManager transactionManager) {
-        Integer id = idSequence.incrementAndGet();
+        Integer id = idSequence.getAndIncrement();
         Game newGame = new Game.GameBuilder(game)
                 .setId(id)
                 .build();
@@ -34,14 +28,15 @@ public final class GameRepositoryImpl implements GameRepository {
 
     @Override
     public void deleteGame(int id, TransactionManager transactionManager) {
-        checkGameExists(id);
         transactionManager.executeCommand(new DeleteCommand<>(gamesStorage, id));
     }
 
     @Override
-    public Game findGameById(int id) {
-        checkGameExists(id);
-        return gamesStorage.get(id);
+    public Optional<Game> findGameById(int id) {
+        if (!gamesStorage.containsKey(id)) {
+            return Optional.empty();
+        }
+        return Optional.of(gamesStorage.get(id));
     }
 
     @Override

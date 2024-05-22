@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-public class PlayerRepositoryImpl implements PlayerRepository {
+public final class PlayerRepositoryImpl implements PlayerRepository {
 
     private final Map<Integer, Player> playersStorage = new ConcurrentHashMap<>();
     private final AtomicInteger idSequence = new AtomicInteger(0);

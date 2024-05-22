@@ -1,6 +1,7 @@
 package com.katsadourose.puzzleapi.model;
 
 import com.katsadourose.puzzleapi.PuzzleUtils;
+import com.katsadourose.puzzleapi.model.puzzle_model.EasyPuzzle15;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;

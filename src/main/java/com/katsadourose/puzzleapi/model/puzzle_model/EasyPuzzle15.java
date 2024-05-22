@@ -1,5 +1,6 @@
-package com.katsadourose.puzzleapi.model;
+package com.katsadourose.puzzleapi.model.puzzle_model;
 
+import com.katsadourose.puzzleapi.model.Puzzle15;
 import lombok.Getter;
 
 @Getter

@@ -1,6 +1,9 @@
 package com.katsadourose.puzzleapi.factory;
 
 import com.katsadourose.puzzleapi.model.*;
+import com.katsadourose.puzzleapi.model.puzzle_model.EasyPuzzle15;
+import com.katsadourose.puzzleapi.model.puzzle_model.HardPuzzle15;
+import com.katsadourose.puzzleapi.model.puzzle_model.MediumPuzzle15;
 
 public class PuzzleFactory {
     public static Puzzle15 createPuzzle(PuzzleType type) {

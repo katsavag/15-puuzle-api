@@ -5,12 +5,10 @@ import lombok.Getter;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 @Getter
 public abstract class Puzzle15 {
     private final int[][] puzzleBoard;
-    private final Random random = new Random();
 
     public Puzzle15(int[][] puzzleBoard) {
         this.puzzleBoard = puzzleBoard;

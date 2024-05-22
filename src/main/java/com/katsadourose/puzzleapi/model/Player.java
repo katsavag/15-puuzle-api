@@ -5,14 +5,17 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-public final class Player extends BaseModel {
+public final class Player {
 
     private final Integer id;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
     private final String playerName;
 
     private Player(LocalDateTime createdAt, LocalDateTime updatedAt, Integer id, String playerName) {
-        super(createdAt, updatedAt);
         this.id = id;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.playerName = playerName;
     }
 

@@ -13,6 +13,17 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>15-puzzle-api</name>
 	<description>A RESTful API for 15 Puzzle games.</description>
+	<developers>
+		<developer>
+			<id>katsavag</id>
+			<name>Evangelos Katsadouros</name>
+			<email>katsadouros.v@gmail.com</email>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>Europe/Athens</timezone>
+		</developer>
+	</developers>
 	<properties>
 		<java.version>17</java.version>
 	</properties>

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Player Controller", description = "APIs related to player operations")
 @RestController
-@RequestMapping("/player")
+@RequestMapping("/players")
 @RequiredArgsConstructor
 public class PlayerController {
 
@@ -32,7 +32,7 @@ public class PlayerController {
     @Operation(summary = "Get player by ID")
     @ApiResponse(responseCode = "200", description = "Player created")
     @ApiResponse(responseCode = "400", description = "Player Creation Failed")
-    @PostMapping(consumes = "application/json", produces = "application/json")
+    @GetMapping(path = "/{id}", consumes = "application/json", produces = "application/json")
     public ResponseEntity<Player> getPlayerById(@PathVariable Long id) {
         return ResponseEntity.ok(null);
     }

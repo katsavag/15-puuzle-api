@@ -34,17 +34,6 @@ public class GameController {
         return new ResponseEntity<>(createdGame, HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Move tile to a new position")
-    @ApiResponse(responseCode = "200", description = "Tile is moved successfully")
-    @ApiResponse(responseCode = "400", description = "Tile Move Failed")
-    @ApiResponse(responseCode = "500", description = "Tile Move Failed due to unexpected error")
-    @PatchMapping(path = "/{id}/puzzle-board/move-tile", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Game> moveTile(@PathVariable int id, @RequestBody TilePosition tilePosition) {
-
-        Game updatedGame = gameService.moveTile(id, tilePosition);
-        return new ResponseEntity<>(updatedGame, HttpStatus.OK);
-    }
-
     @Operation(summary = "Get game by id")
     @ApiResponse(responseCode = "200", description = "Get Game by id successfully")
     @ApiResponse(responseCode = "404", description = "Game Not Found")
@@ -63,6 +52,17 @@ public class GameController {
             return new ResponseEntity<>(gameService.getGamesByPlayerId(playerId), HttpStatus.OK);
         }
         return new ResponseEntity<>(gameService.getGames(), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Move tile to a new position")
+    @ApiResponse(responseCode = "200", description = "Tile is moved successfully")
+    @ApiResponse(responseCode = "400", description = "Tile Move Failed")
+    @ApiResponse(responseCode = "500", description = "Tile Move Failed due to unexpected error")
+    @PatchMapping(path = "/{id}/puzzle-board/move-tile", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<Game> moveTile(@PathVariable int id, @RequestBody TilePosition tilePosition) {
+
+        Game updatedGame = gameService.moveTile(id, tilePosition);
+        return new ResponseEntity<>(updatedGame, HttpStatus.OK);
     }
 
     @Operation(summary = "Delete existing game")

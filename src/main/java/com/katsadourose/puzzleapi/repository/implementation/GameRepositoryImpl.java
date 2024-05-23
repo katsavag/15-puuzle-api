@@ -18,12 +18,13 @@ public final class GameRepositoryImpl implements GameRepository {
     private final AtomicInteger idSequence = new AtomicInteger(0);
 
     @Override
-    public void saveGame(Game game, TransactionManager transactionManager) {
+    public Game saveGame(Game game, TransactionManager transactionManager) {
         Integer id = idSequence.getAndIncrement();
         Game newGame = new Game.GameBuilder(game)
                 .setId(id)
                 .build();
         transactionManager.executeCommand(new SaveCommand<>(gamesStorage, newGame, id));
+        return newGame;
     }
 
     @Override

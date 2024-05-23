@@ -1,82 +1,103 @@
 package com.katsadourose.puzzleapi.controller;
 
-import com.katsadourose.puzzleapi.dto.NewGameDTO;
-import com.katsadourose.puzzleapi.factory.GameFactory;
-import com.katsadourose.puzzleapi.model.Game;
-import com.katsadourose.puzzleapi.model.PuzzleType;
-import com.katsadourose.puzzleapi.model.TilePosition;
-import com.katsadourose.puzzleapi.service.GameService;
-import org.junit.jupiter.api.BeforeEach;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.katsadourose.puzzleapi.dto.ErrorDTO;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SpringBootTest
+@AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class GameControllerTest {
 
-    @Mock
-    private GameService gameService;
-
-    @InjectMocks
-    private GameController gameController;
-
+    @Autowired
     private MockMvc mockMvc;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(gameController).build();
-    }
 
     @Test
     public void testCreateNewGame() throws Exception {
-        Game game = GameFactory.createGame(1, PuzzleType.EASY);
-        when(gameService.createGame(any(NewGameDTO.class))).thenReturn(game);
+        mockMvc.perform(post("/players")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playerName\":\"test\"}"))
+                .andExpect(status().isCreated());
 
         mockMvc.perform(post("/games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"playerId\":1,\"puzzleType\": \"EASY\"}"))
+                        .content("{\"playerId\":0,\"puzzleType\": \"EASY\"}"))
                 .andExpect(status().isCreated());
     }
 
     @Test
-    public void testMoveTile() throws Exception {
-        Game game = GameFactory.createGame(1, PuzzleType.EASY);
-        when(gameService.moveTile(anyInt(), any(TilePosition.class))).thenReturn(game);
-
-        mockMvc.perform(patch("/games/1/puzzle-board/move-tile")
+    public void testCreateNewGame_PlayerNotFound() throws Exception {
+        MvcResult result = mockMvc.perform(post("/games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"row\":1,\"column\":1}"))
-                .andExpect(status().isOk());
+                        .content("{\"playerId\":100,\"puzzleType\": \"EASY\"}"))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        ErrorDTO errorDTO = mapper.readValue(content, ErrorDTO.class);
+
+        assertEquals(404, errorDTO.status());
+        assertEquals("PLAYER_NOT_FOUND", errorDTO.error());
+    }
+
+    @Test
+    public void testCreateNewGame_MaxGames() throws Exception {
+        mockMvc.perform(post("/players")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playerName\":\"test\"}"))
+                .andExpect(status().isCreated());
+
+        for (int i = 0; i < 11; i++) {
+            mockMvc.perform(post("/games")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"playerId\":0,\"puzzleType\": \"EASY\"}"))
+                    .andExpect(status().isCreated());
+        }
+        mockMvc.perform(post("/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playerId\":0,\"puzzleType\": \"EASY\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testGetGameById() throws Exception {
-        Game game = GameFactory.createGame(1, PuzzleType.EASY);
-        when(gameService.getGameById(anyInt())).thenReturn(game);
+        mockMvc.perform(post("/players")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playerName\":\"test\"}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playerId\":0,\"puzzleType\": \"EASY\"}"))
+                .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/games/1")
+        mockMvc.perform(get("/games/0")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void testGetGames() throws Exception {
-        Game game = GameFactory.createGame(1, PuzzleType.EASY);
-        when(gameService.getGames()).thenReturn(Collections.singletonList(game));
+    public void testGetGameById_NotFound() throws Exception {
+        mockMvc.perform(get("/games/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
 
+    @Test
+    public void testGetGames() throws Exception {
         mockMvc.perform(get("/games")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
@@ -84,8 +105,15 @@ public class GameControllerTest {
 
     @Test
     public void testDeleteGame() throws Exception {
-        doNothing().when(gameService).deleteGame(anyInt());
-        mockMvc.perform(delete("/games/1")
+        mockMvc.perform(post("/players")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playerName\":\"test\"}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playerId\":0,\"puzzleType\": \"EASY\"}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(delete("/games/0")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }

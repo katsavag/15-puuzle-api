@@ -6,6 +6,7 @@ import com.katsadourose.puzzleapi.factory.GameFactory;
 import com.katsadourose.puzzleapi.model.Game;
 import com.katsadourose.puzzleapi.model.TilePosition;
 import com.katsadourose.puzzleapi.repository.GameRepository;
+import com.katsadourose.puzzleapi.repository.PlayerRepository;
 import com.katsadourose.puzzleapi.service.GameService;
 import com.katsadourose.puzzleapi.service.PlayerService;
 import com.katsadourose.puzzleapi.transaction_engine.TransactionManager;
@@ -22,7 +23,7 @@ import java.util.Optional;
 public class GameServiceImpl implements GameService {
 
     private final GameRepository gameRepository;
-    private final PlayerService playerService;
+    private final PlayerRepository playerRepository;
 
 
     private int countPlayerTotalGames(int playerId) {
@@ -31,7 +32,8 @@ public class GameServiceImpl implements GameService {
     }
 
     private void validateGameCreation(NewGameDTO newGameDTO) {
-        playerService.getPlayerById(newGameDTO.playerId());
+        playerRepository.findById(newGameDTO.playerId())
+                .orElseThrow(() -> new ResourceNotFoundException("Player with id " + newGameDTO.playerId() + " not found"));
         if (countPlayerTotalGames(newGameDTO.playerId()) > 10) {
             throw new MaxResourceEntriesException("Player has reached the maximum number of games");
         }
@@ -51,15 +53,15 @@ public class GameServiceImpl implements GameService {
             gameRepository.saveGame(game, transactionManager);
             return game;
         } catch (MaxResourceEntriesException exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.MAX_GAMES_ENTRIES, String.format("Failed to create new game: %s", ErrorCode.MAX_GAMES_ENTRIES.getMessage()));
-        } catch (PlayerServiceException exception) {
-            log.error(exception.getMessage());
+        } catch (ResourceNotFoundException exception) {
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
-            throw new GameServiceException(exception.getErrorCode(), String.format("Failed to create new game: %s", exception.getErrorCode().getMessage()));
+            throw new GameServiceException(ErrorCode.PLAYER_NOT_FOUND, String.format("Failed to create new game: %s", ErrorCode.PLAYER_NOT_FOUND.getMessage()));
         } catch (Exception exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to create new game: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }
@@ -82,15 +84,15 @@ public class GameServiceImpl implements GameService {
             gameRepository.saveGame(game, transactionManager);
             return game;
         } catch (ResourceNotFoundException exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.GAME_NOT_FOUND, String.format("Failed to move tile: %s", ErrorCode.GAME_NOT_FOUND.getMessage()));
         } catch (InvalidPuzzleMoveException exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INVALID_PUZZLE_MOVE, String.format("Failed to move tile: %s", ErrorCode.INVALID_PUZZLE_MOVE.getMessage()));
         } catch (Exception exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to move tile: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }
@@ -106,11 +108,11 @@ public class GameServiceImpl implements GameService {
             }
             return optionalGame.get();
         } catch (ResourceNotFoundException exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.GAME_NOT_FOUND, String.format("Failed to retrieve game: %s", ErrorCode.GAME_NOT_FOUND.getMessage()));
         } catch (Exception exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to retrieve game: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }
@@ -122,7 +124,7 @@ public class GameServiceImpl implements GameService {
         try {
             return gameRepository.findGamesByPlayerId(playerId);
         } catch (Exception exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to retrieve games: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }
@@ -134,7 +136,7 @@ public class GameServiceImpl implements GameService {
         try {
             return gameRepository.findAllGames();
         } catch (Exception exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to retrieve games: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }
@@ -143,15 +145,19 @@ public class GameServiceImpl implements GameService {
     @Override
     public void deleteGame(int id) {
         TransactionManager transactionManager = new TransactionManager();
+        deleteOperation(id, transactionManager);
+    }
+
+    private void deleteOperation(int id, TransactionManager transactionManager) {
         try {
             checkGameExists(id);
             gameRepository.deleteGame(id, transactionManager);
         } catch (ResourceNotFoundException exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.GAME_NOT_FOUND, String.format("Failed to delete game: %s", ErrorCode.GAME_NOT_FOUND.getMessage()));
         } catch (Exception exception) {
-            log.error(exception.getMessage());
+            log.error(exception.getMessage(), exception);
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to delete game: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }

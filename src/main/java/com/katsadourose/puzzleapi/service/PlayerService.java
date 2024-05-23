@@ -6,7 +6,9 @@ import com.katsadourose.puzzleapi.model.Player;
 
 public interface PlayerService {
 
-    void createNewPlayer(NewPlayerDTO newPlayerDTO);
+    Player createNewPlayer(NewPlayerDTO newPlayerDTO);
+
+    void deletePlayer(int playerId);
 
     Player getPlayerById(int playerId) throws PlayerServiceException;
 }

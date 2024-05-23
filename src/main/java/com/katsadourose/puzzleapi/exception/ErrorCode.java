@@ -11,6 +11,7 @@ public enum ErrorCode {
     MAX_GAMES_ENTRIES(HttpStatus.BAD_REQUEST, "Player has reached the maximum number of games"),
     INVALID_PUZZLE_MOVE(HttpStatus.BAD_REQUEST, "Puzzle Move is invalid"),
     PLAYER_NOT_FOUND(HttpStatus.NOT_FOUND, "Player not found"),
+    PLAYER_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "Player with this name already exists"),
     INTERNAL_SERVER(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred");
 
 

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GameRepository {
-    void saveGame(Game game, TransactionManager transactionManager);
+    Game saveGame(Game game, TransactionManager transactionManager);
 
     void deleteGame(int id, TransactionManager transactionManager);
 

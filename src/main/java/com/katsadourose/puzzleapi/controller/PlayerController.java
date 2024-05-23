@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Player Controller", description = "APIs related to player operations")
+@Tag(name = "Player Operations", description = "APIs related to player operations")
 @RestController
 @RequestMapping("/players")
 @RequiredArgsConstructor
@@ -25,15 +25,26 @@ public class PlayerController {
     @ApiResponse(responseCode = "400", description = "Player Creation Failed")
     @PostMapping(consumes = "application/json", produces = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    public void createNewPlayer(@Valid @RequestBody NewPlayerDTO newPlayerDTO) {
-        playerService.createNewPlayer(newPlayerDTO);
+    public ResponseEntity<Player> createNewPlayer(@Valid @RequestBody NewPlayerDTO newPlayerDTO) {
+        Player player = playerService.createNewPlayer(newPlayerDTO);
+        return new ResponseEntity<>(player, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Get player by ID")
-    @ApiResponse(responseCode = "200", description = "Player created")
-    @ApiResponse(responseCode = "400", description = "Player Creation Failed")
-    @GetMapping(path = "/{id}", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Player> getPlayerById(@PathVariable Long id) {
-        return ResponseEntity.ok(null);
+    @ApiResponse(responseCode = "200", description = "Player retrieved successfully")
+    @ApiResponse(responseCode = "404", description = "Player Not Found")
+    @GetMapping(path = "/{id}", produces = "application/json")
+    public ResponseEntity<Player> getPlayerById(@PathVariable Integer id) {
+
+        return new ResponseEntity<>(playerService.getPlayerById(id), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Delete player by ID")
+    @ApiResponse(responseCode = "204", description = "Player deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Player Not Found")
+    @DeleteMapping(path = "/{id}", produces = "application/json")
+    public ResponseEntity<Void> deletePlayer(@PathVariable Integer id) {
+        playerService.deletePlayer(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

@@ -4,6 +4,7 @@ import com.katsadourose.puzzleapi.dto.NewGameDTO;
 import com.katsadourose.puzzleapi.exception.*;
 import com.katsadourose.puzzleapi.factory.GameFactory;
 import com.katsadourose.puzzleapi.model.*;
+import com.katsadourose.puzzleapi.repository.PlayerRepository;
 import com.katsadourose.puzzleapi.repository.implementation.GameRepositoryImpl;
 import com.katsadourose.puzzleapi.service.PlayerService;
 import com.katsadourose.puzzleapi.transaction_engine.TransactionManager;
@@ -28,7 +29,7 @@ public class GameServiceImplTest {
     private GameRepositoryImpl gameRepository;
 
     @Mock
-    private PlayerService playerService;
+    private PlayerRepository playerRepository;
 
     @InjectMocks
     private GameServiceImpl gameService;
@@ -36,9 +37,14 @@ public class GameServiceImplTest {
     @Test
     public void testCreateGame_Success() {
         NewGameDTO newGameDTO = new NewGameDTO(1, PuzzleType.EASY);
+        Game game = GameFactory.createGame(1, PuzzleType.EASY);
+        Player player = new Player.PlayerBuilder().setId(1).setPlayerName("test").build();
+        when(playerRepository.findById(anyInt())).thenReturn(Optional.of(player));
+        when(gameRepository.saveGame(any(Game.class), any(TransactionManager.class))).thenReturn(game);
         when(gameRepository.findGamesByPlayerId(anyInt())).thenReturn(Collections.emptyList());
 
-        Game game = gameService.createGame(newGameDTO);
+
+        game = gameService.createGame(newGameDTO);
 
         assertNotNull(game);
         verify(gameRepository, times(1)).saveGame(any(Game.class), any(TransactionManager.class));
@@ -46,12 +52,17 @@ public class GameServiceImplTest {
 
     @Test
     public void testCreateGame_MaxGamesReached() {
+        Game game = GameFactory.createGame(1, PuzzleType.EASY);
         List<Game> games = new ArrayList<>();
         for (int i = 0; i < 11; i++) {
-            NewGameDTO newGameDTO = new NewGameDTO(1, PuzzleType.EASY);
-            games.add(gameService.createGame(newGameDTO));
+            games.add(game);
         }
+
+        Player player = new Player.PlayerBuilder().setId(1).setPlayerName("test").build();
+        when(playerRepository.findById(anyInt())).thenReturn(Optional.of(player));
         when(gameRepository.findGamesByPlayerId(anyInt())).thenReturn(games);
+
+
         NewGameDTO newGameDTO = new NewGameDTO(1, PuzzleType.EASY);
         GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.createGame(newGameDTO));
         assertEquals(String.format("Failed to create new game: %s", ErrorCode.MAX_GAMES_ENTRIES.getMessage()), exception.getMessage());
@@ -61,6 +72,9 @@ public class GameServiceImplTest {
     @Test
     public void testCreateGame_ExceptionThrown() {
         NewGameDTO newGameDTO = new NewGameDTO(1, PuzzleType.EASY);
+
+        Player player = new Player.PlayerBuilder().setId(1).setPlayerName("test").build();
+        when(playerRepository.findById(anyInt())).thenReturn(Optional.of(player));
         when(gameRepository.findGamesByPlayerId(anyInt())).thenReturn(Collections.emptyList());
         doThrow(RuntimeException.class).when(gameRepository).saveGame(any(Game.class), any(TransactionManager.class));
 
@@ -72,7 +86,7 @@ public class GameServiceImplTest {
     @Test
     public void testCreateGame_PlayerNotFound() {
         NewGameDTO newGameDTO = new NewGameDTO(1, PuzzleType.EASY);
-        when(playerService.getPlayerById(anyInt())).thenThrow(new PlayerServiceException(ErrorCode.PLAYER_NOT_FOUND, String.format("Failed to retrieve player: %s", ErrorCode.PLAYER_NOT_FOUND.getMessage())));
+        when(playerRepository.findById(anyInt())).thenReturn(Optional.empty());
 
         GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.createGame(newGameDTO));
         assertEquals(String.format("Failed to create new game: %s", ErrorCode.PLAYER_NOT_FOUND.getMessage()), exception.getMessage());

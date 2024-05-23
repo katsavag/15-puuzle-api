@@ -5,6 +5,6 @@ import jakarta.validation.constraints.Pattern;
 
 public record NewPlayerDTO(
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z]*$", message = "Player's name can only contain English letters")
+        @Pattern(regexp = "^[a-zA-Z0-9_]*$", message = "Player's name can only contain English letters, numbers and underscores.")
         String playerName
 ) { }

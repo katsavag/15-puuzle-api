@@ -1,6 +1,7 @@
 package com.katsadourose.puzzleapi.model;
 
 import com.katsadourose.puzzleapi.PuzzleUtils;
+import com.katsadourose.puzzleapi.exception.InvalidPuzzleMoveException;
 import lombok.Getter;
 
 import java.util.Iterator;
@@ -9,6 +10,8 @@ import java.util.List;
 @Getter
 public abstract class Puzzle15 {
     private final int[][] puzzleBoard;
+    private int totalMoves = 0;
+    private PuzzleStatus status = PuzzleStatus.OPEN;
 
     public Puzzle15(int[][] puzzleBoard) {
         this.puzzleBoard = puzzleBoard;
@@ -33,12 +36,12 @@ public abstract class Puzzle15 {
                 }
             }
         }
-        throw new IllegalStateException("Zero tile not found");
+        throw new InvalidPuzzleMoveException("Zero tile not found");
     }
 
     private  void isTileMovementValid(TilePosition currentTile, TilePosition zeroTile) {
         if (Math.abs(currentTile.row() - zeroTile.row()) + Math.abs(currentTile.col() - zeroTile.col()) != 1) {
-            throw new IllegalArgumentException("Invalid move");
+            throw new InvalidPuzzleMoveException("Selected tile is not adjacent to the zero tile");
         }
     }
 
@@ -49,6 +52,8 @@ public abstract class Puzzle15 {
         isTileMovementValid(targetTile, zeroTilePosition);
 
         swap(targetTile, zeroTilePosition);
+
+        totalMoves++;
     }
 
     private void swap(TilePosition currentTile, TilePosition zeroTile) {

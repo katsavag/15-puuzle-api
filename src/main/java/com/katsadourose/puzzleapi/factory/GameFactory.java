@@ -20,7 +20,6 @@ public class GameFactory {
                 .setPlayerId(playerId)
                 .setPuzzleType(type)
                 .setPuzzle(puzzle)
-                .setTotalMoves(new AtomicInteger(0))
                 .setCreatedAt(LocalDateTime.now())
                 .setUpdatedAt(LocalDateTime.now())
                 .build();

@@ -2,6 +2,7 @@ package com.katsadourose.puzzleapi.controller;
 
 import com.katsadourose.puzzleapi.dto.NewGameDTO;
 import com.katsadourose.puzzleapi.model.Game;
+import com.katsadourose.puzzleapi.model.TilePosition;
 import com.katsadourose.puzzleapi.service.GameService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,6 +30,17 @@ public class GameController {
 
         Game createdGame = gameService.createGame(newGameDTO);
         return new ResponseEntity<>(createdGame, HttpStatus.CREATED);
+    }
+
+    @Operation(summary = "Move tile to a new position")
+    @ApiResponse(responseCode = "200", description = "Tile is moved successfully")
+    @ApiResponse(responseCode = "400", description = "Tile Move Failed")
+    @ApiResponse(responseCode = "500", description = "Tile Move Failed due to unexpected error")
+    @PostMapping(path = "/{id}/move-tile", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<Game> moveTile(@PathVariable int id, @RequestBody TilePosition tilePosition) {
+
+        Game updatedGame = gameService.moveTile(id, tilePosition);
+        return new ResponseEntity<>(updatedGame, HttpStatus.OK);
     }
 
     @Operation(summary = "Delete existing game")

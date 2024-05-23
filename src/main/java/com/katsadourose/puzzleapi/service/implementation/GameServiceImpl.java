@@ -4,6 +4,8 @@ import com.katsadourose.puzzleapi.dto.NewGameDTO;
 import com.katsadourose.puzzleapi.exception.*;
 import com.katsadourose.puzzleapi.factory.GameFactory;
 import com.katsadourose.puzzleapi.model.Game;
+import com.katsadourose.puzzleapi.model.PuzzleStatus;
+import com.katsadourose.puzzleapi.model.TilePosition;
 import com.katsadourose.puzzleapi.repository.GameRepository;
 import com.katsadourose.puzzleapi.service.GameService;
 import com.katsadourose.puzzleapi.service.PlayerService;
@@ -60,6 +62,37 @@ public class GameServiceImpl implements GameService {
             log.error(exception.getMessage());
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to create new game: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
+        }
+    }
+
+    private void validateGameMove(int gameId) {
+        checkGameExists(gameId);
+        Game game = gameRepository.findGameById(gameId).get();
+        if (game.isCompleted()) {
+            throw new InvalidPuzzleMoveException("Game is already completed");
+        }
+    }
+    @Override
+    public Game moveTile(int gameId, TilePosition tilePosition) {
+        TransactionManager transactionManager = new TransactionManager();
+        try {
+            validateGameMove(gameId);
+            Game game = gameRepository.findGameById(gameId).get();
+            game.getPuzzle().moveTile(tilePosition);
+            gameRepository.saveGame(game, transactionManager);
+            return game;
+        } catch (ResourceNotFoundException exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.GAME_NOT_FOUND, String.format("Failed to move tile: %s", ErrorCode.GAME_NOT_FOUND.getMessage()));
+        } catch (InvalidPuzzleMoveException exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.INVALID_PUZZLE_MOVE, String.format("Failed to move tile: %s", ErrorCode.INVALID_PUZZLE_MOVE.getMessage()));
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to move tile: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }
     }
 

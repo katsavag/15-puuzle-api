@@ -3,8 +3,7 @@ package com.katsadourose.puzzleapi.service.implementation;
 import com.katsadourose.puzzleapi.dto.NewGameDTO;
 import com.katsadourose.puzzleapi.exception.*;
 import com.katsadourose.puzzleapi.factory.GameFactory;
-import com.katsadourose.puzzleapi.model.Game;
-import com.katsadourose.puzzleapi.model.PuzzleType;
+import com.katsadourose.puzzleapi.model.*;
 import com.katsadourose.puzzleapi.repository.implementation.GameRepositoryImpl;
 import com.katsadourose.puzzleapi.service.PlayerService;
 import com.katsadourose.puzzleapi.transaction_engine.TransactionManager;
@@ -78,6 +77,32 @@ public class GameServiceImplTest {
         GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.createGame(newGameDTO));
         assertEquals(String.format("Failed to create new game: %s", ErrorCode.PLAYER_NOT_FOUND.getMessage()), exception.getMessage());
         assertEquals("PLAYER_NOT_FOUND", exception.getErrorCode().name());
+    }
+
+    @Test
+    public void testMoveTile_GameNotFound() {
+        when(gameRepository.findGameById(anyInt())).thenReturn(Optional.empty());
+
+        GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.moveTile(1, new TilePosition(0, 0)));
+        assertEquals(ErrorCode.GAME_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    public void testMoveTile_InvalidMove() {
+        Game mockGame = mock(Game.class);
+        when(mockGame.isCompleted()).thenReturn(true);
+        when(gameRepository.findGameById(anyInt())).thenReturn(Optional.of(mockGame));
+
+        GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.moveTile(1, new TilePosition(0, 0)));
+        assertEquals(ErrorCode.INVALID_PUZZLE_MOVE, exception.getErrorCode());
+    }
+
+    @Test
+    public void testMoveTile_ExceptionThrown() {
+        doThrow(RuntimeException.class).when(gameRepository).findGameById(anyInt());
+
+        GameServiceException exception = assertThrows(GameServiceException.class, () -> gameService.moveTile(1, new TilePosition(0, 0)));
+        assertEquals(ErrorCode.INTERNAL_SERVER, exception.getErrorCode());
     }
 
     @Test

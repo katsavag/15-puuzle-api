@@ -28,6 +28,7 @@ public class EasyPuzzle15Test {
         TilePosition targetTile = new TilePosition(1, 1);
         assertDoesNotThrow(() -> easyPuzzle15.moveTile(targetTile));
         assertArrayEquals(new int[][]{{1, 2}, {3, 0}}, easyPuzzle15.getPuzzleBoard());
+        assertEquals(1, easyPuzzle15.getTotalMoves());
     }
 
     @Test

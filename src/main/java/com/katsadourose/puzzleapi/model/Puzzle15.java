@@ -19,18 +19,21 @@ public abstract class Puzzle15 {
     }
 
     private void initialize() {
-        List<Integer> randomTilesNumbers = PuzzleUtils.getRandomTilesNumbers();
+        int size = puzzleBoard[0].length;
+        List<Integer> randomTilesNumbers = PuzzleUtils.getRandomTilesNumbers((size * size) - 1);
         Iterator<Integer> tilesIterator = randomTilesNumbers.iterator();
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 2; j++) {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 puzzleBoard[i][j] = tilesIterator.next();
             }
         }
     }
 
     private TilePosition findZeroTilePosition() {
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 2; j++) {
+        int size = puzzleBoard[0].length;
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 if (puzzleBoard[i][j] == 0) {
                     return new TilePosition(i, j);
                 }
@@ -45,6 +48,27 @@ public abstract class Puzzle15 {
         }
     }
 
+    private void isPuzzleSolved() {
+        int size = puzzleBoard.length;
+        int index = 0;
+        int[] flatArray = new int[size * size];
+
+        int tileNumber = 1;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                flatArray[index++] = puzzleBoard[i][j];
+            }
+        }
+
+        for (int i = 0; i < flatArray.length - 1; i++) {
+            if (flatArray[i] != tileNumber) {
+                return;
+            }
+            tileNumber++;
+        }
+        status = PuzzleStatus.COMPLETED;
+    }
+
     public synchronized void moveTile(TilePosition targetTile) {
 
         TilePosition zeroTilePosition = findZeroTilePosition();
@@ -54,6 +78,8 @@ public abstract class Puzzle15 {
         swap(targetTile, zeroTilePosition);
 
         totalMoves++;
+
+        isPuzzleSolved();
     }
 
     private void swap(TilePosition currentTile, TilePosition zeroTile) {

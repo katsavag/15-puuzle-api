@@ -47,4 +47,12 @@ public final class GameRepositoryImpl implements GameRepository {
                 .filter(game -> game.getPlayerId().equals(playerId))
                 .toList();
     }
+
+    @Override
+    public List<Game> findAllGames() {
+        return gamesStorage
+                .values()
+                .stream()
+                .toList();
+    }
 }

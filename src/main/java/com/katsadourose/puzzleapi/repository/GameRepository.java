@@ -14,4 +14,6 @@ public interface GameRepository {
     Optional<Game> findGameById(int id);
 
     List<Game> findGamesByPlayerId(int playerId);
+
+    List<Game> findAllGames();
 }

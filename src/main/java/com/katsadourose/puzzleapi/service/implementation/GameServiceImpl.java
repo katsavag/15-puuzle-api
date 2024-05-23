@@ -4,7 +4,6 @@ import com.katsadourose.puzzleapi.dto.NewGameDTO;
 import com.katsadourose.puzzleapi.exception.*;
 import com.katsadourose.puzzleapi.factory.GameFactory;
 import com.katsadourose.puzzleapi.model.Game;
-import com.katsadourose.puzzleapi.model.PuzzleStatus;
 import com.katsadourose.puzzleapi.model.TilePosition;
 import com.katsadourose.puzzleapi.repository.GameRepository;
 import com.katsadourose.puzzleapi.service.GameService;
@@ -15,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -93,6 +93,50 @@ public class GameServiceImpl implements GameService {
             log.error(exception.getMessage());
             transactionManager.rollback();
             throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to move tile: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
+        }
+    }
+
+    @Override
+    public Game getGameById(int id) {
+        TransactionManager transactionManager = new TransactionManager();
+        try {
+            Optional<Game> optionalGame = gameRepository.findGameById(id);
+            if (optionalGame.isEmpty()) {
+                throw new ResourceNotFoundException("Game with id " + id + " not found");
+            }
+            return optionalGame.get();
+        } catch (ResourceNotFoundException exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.GAME_NOT_FOUND, String.format("Failed to retrieve game: %s", ErrorCode.GAME_NOT_FOUND.getMessage()));
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to retrieve game: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
+        }
+    }
+
+    @Override
+    public List<Game> getGamesByPlayerId(int playerId) {
+        TransactionManager transactionManager = new TransactionManager();
+        try {
+            return gameRepository.findGamesByPlayerId(playerId);
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to retrieve games: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
+        }
+    }
+
+    @Override
+    public List<Game> getGames() {
+        TransactionManager transactionManager = new TransactionManager();
+        try {
+            return gameRepository.findAllGames();
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            transactionManager.rollback();
+            throw new GameServiceException(ErrorCode.INTERNAL_SERVER, String.format("Failed to retrieve games: %s", ErrorCode.INTERNAL_SERVER.getMessage()));
         }
     }
 

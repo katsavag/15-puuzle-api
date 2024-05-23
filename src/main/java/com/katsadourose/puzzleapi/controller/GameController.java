@@ -13,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Game Controller", description = "APIs related to game operations")
+import java.util.List;
+
+@Tag(name = "Game Operations", description = "APIs related to game operations")
 @RestController
 @RequestMapping("/games")
 @RequiredArgsConstructor
@@ -36,11 +38,31 @@ public class GameController {
     @ApiResponse(responseCode = "200", description = "Tile is moved successfully")
     @ApiResponse(responseCode = "400", description = "Tile Move Failed")
     @ApiResponse(responseCode = "500", description = "Tile Move Failed due to unexpected error")
-    @PostMapping(path = "/{id}/move-tile", consumes = "application/json", produces = "application/json")
+    @PatchMapping(path = "/{id}/puzzle-board/move-tile", consumes = "application/json", produces = "application/json")
     public ResponseEntity<Game> moveTile(@PathVariable int id, @RequestBody TilePosition tilePosition) {
 
         Game updatedGame = gameService.moveTile(id, tilePosition);
         return new ResponseEntity<>(updatedGame, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Get game by id")
+    @ApiResponse(responseCode = "200", description = "Get Game by id successfully")
+    @ApiResponse(responseCode = "404", description = "Game Not Found")
+    @ApiResponse(responseCode = "500", description = "Game Retrieval Failed due to unexpected error")
+    @GetMapping(path = "/{id}", produces = "application/json")
+    public ResponseEntity<Game> getGameById(@PathVariable int id) {
+        return new ResponseEntity<>(gameService.getGameById(id), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Get game by player id or all games if no player id is provided")
+    @ApiResponse(responseCode = "200", description = "Get Games successfully")
+    @ApiResponse(responseCode = "500", description = "Games Retrieval Failed due to unexpected error")
+    @GetMapping(produces = "application/json")
+    public ResponseEntity<List<Game>> getGames(@RequestParam(required = false) Integer playerId) {
+        if (playerId != null) {
+            return new ResponseEntity<>(gameService.getGamesByPlayerId(playerId), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(gameService.getGames(), HttpStatus.OK);
     }
 
     @Operation(summary = "Delete existing game")
@@ -48,7 +70,7 @@ public class GameController {
     @ApiResponse(responseCode = "404", description = "Game Not Found")
     @ApiResponse(responseCode = "500", description = "Game Deletion Failed due to unexpected error")
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> createNewGame(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteGame(@PathVariable Integer id) {
 
         gameService.deleteGame(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

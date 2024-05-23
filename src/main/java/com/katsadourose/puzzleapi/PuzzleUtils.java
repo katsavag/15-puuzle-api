@@ -7,8 +7,8 @@ import java.util.stream.IntStream;
 
 public class PuzzleUtils {
 
-    public static List<Integer> getRandomTilesNumbers() {
-        List<Integer> randomTilesNumbers = new ArrayList<>(IntStream.rangeClosed(0, 3).boxed().toList());
+    public static List<Integer> getRandomTilesNumbers(int totalNums) {
+        List<Integer> randomTilesNumbers = new ArrayList<>(IntStream.rangeClosed(0, totalNums).boxed().toList());
         Collections.shuffle(randomTilesNumbers);
         return randomTilesNumbers;
     }
